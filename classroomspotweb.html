@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>classroomspot</title>
+
+<script src="/uv/uv.bundle.js"></script>
+<script src="/uv/uv.config.js"></script>
+<script src="/baremux/index.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=Inter:wght@400;500;600&amp;family=DM+Sans:opsz,wght@9..40,100..1000&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+
+<style>
+* { box-sizing: border-box; font-family: Inter, system-ui; }
+
+html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    background: #000000;
+    overflow: hidden;
+}
+
+/* ===== LIGHT BLUE PARTICLES BACKGROUND ===== */
+.stars-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.star {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: #7dd8f8;
+    border-radius: 50%;
+    animation: twinkle 3s infinite;
+    box-shadow: 0 0 6px #7dd8f8;
+}
+
+/* Particle that waves to the right */
+.falling-star {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    background: #7dd8f8;
+    border-radius: 50%;
+    box-shadow: 0 0 10px 2px rgba(125, 216, 248, 0.8);
+    animation: waveRight linear infinite;
+}
+
+.falling-star::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 80px;
+    height: 1px;
+    background: linear-gradient(270deg, rgba(125,216,248,1) 0%, rgba(125,216,248,0) 100%);
+    left: 3px;
+}
+
+@keyframes twinkle {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* Wave to the right animation with sine-wave vertical oscillation */
+@keyframes waveRight {
+    0% {
+        transform: translateX(0) translateY(0);
+        opacity: 0;
+    }
+    10% { opacity: 1; }
+    90% { opacity: 0.8; }
+    100% {
+        transform: translateX(600px) translateY(var(--wave-offset, 0px));
+        opacity: 0;
+    }
+}
+
+/* ===== NEON TEXT EFFECTS ===== */
+.neon-text {
+    font-family: 'Bebas Neue', sans-serif;
+    color: #fff;
+    font-weight: 400;
+    font-size: 6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-shadow: 
+        0 0 5px #fff,
+        0 0 10px #fff,
+        0 0 20px #7dd8f8,
+        0 0 40px #7dd8f8,
+        0 0 80px #7dd8f8,
+        0 0 90px #7dd8f8,
+        0 0 100px #7dd8f8,
+        0 0 150px #7dd8f8;
+    animation: flicker 3s infinite alternate;
+}
+
+@keyframes flicker {
+    0%, 18%, 22%, 25%, 53%, 57%, 100% {
+        text-shadow: 
+            0 0 5px #fff,
+            0 0 10px #fff,
+            0 0 20px #7dd8f8,
+            0 0 40px #7dd8f8,
+            0 0 80px #7dd8f8,
+            0 0 90px #7dd8f8,
+            0 0 100px #7dd8f8,
+            0 0 150px #7dd8f8;
+        opacity: 1;
+    }
+    20%, 24%, 55% {
+        text-shadow: none;
+        opacity: 0.8;
+    }
+}
+
+/* ===== TOP BAR ===== */
+.browser-ui {
+    height: 96px;
+    background: rgba(10, 10, 20, 0.85);
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid #7dd8f8;
+    z-index: 10;
+    position: relative;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0 20px rgba(125, 216, 248, 0.2);
+}
+
+/* ===== TABS ===== */
+.tabs {
+    height: 38px;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    gap: 6px;
+    overflow-x: auto;
+}
+
+.tab {
+    height: 28px;
+    min-width: 160px;
+    max-width: 220px;
+    padding: 0 12px;
+    border-radius: 8px 8px 0 0;
+    background: #1a1a2e;
+    color: #ddd;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+    font-size: 12px;
+}
+
+.tab.active {
+    background: #0f0f1e;
+    color: #7dd8f8;
+    border-color: #7dd8f8;
+    box-shadow: 0 0 15px rgba(125, 216, 248, 0.4), inset 0 0 10px rgba(125, 216, 248, 0.1);
+    text-shadow: 0 0 5px #7dd8f8;
+}
+
+.tab span {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tab i {
+    opacity: .6;
+    transition: all 0.3s ease;
+}
+.tab i:hover {
+    opacity: 1;
+    color: #7dd8f8;
+    text-shadow: 0 0 10px #7dd8f8;
+}
+
+.newtab {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    color: #aaa;
+    transition: all 0.3s ease;
+}
+.newtab:hover { 
+    background: #1a1a2e; 
+    color: #7dd8f8;
+    box-shadow: 0 0 15px rgba(125, 216, 248, 0.6);
+    text-shadow: 0 0 5px #7dd8f8;
+}
+
+/* ===== NAV BAR ===== */
+.navbar {
+    height: 58px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 12px;
+}
+
+.navbar button {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: #bbb;
+    transition: all 0.3s ease;
+}
+.navbar button:hover {
+    background: #1a1a2e;
+    color: #7dd8f8;
+    box-shadow: 0 0 15px rgba(125, 216, 248, 0.5);
+    text-shadow: 0 0 5px #7dd8f8;
+    transform: scale(1.1);
+}
+
+/* ===== URL BAR ===== */
+.urlbar {
+    flex: 1;
+    height: 36px;
+    background: #0f0f1e;
+    border-radius: 18px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    color: white;
+    border: 1px solid #333;
+    transition: all 0.3s ease;
+}
+
+.urlbar:focus-within {
+    border-color: #7dd8f8;
+    box-shadow: 0 0 20px rgba(125, 216, 248, 0.4), inset 0 0 10px rgba(125, 216, 248, 0.1);
+}
+
+.urlbar input {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #7dd8f8;
+    font-size: 14px;
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 0.05em;
+}
+
+.urlbar input::placeholder {
+    color: #555;
+    font-family: 'Bebas Neue', sans-serif;
+}
+
+/* ===== VIEWPORT ===== */
+.viewframe {
+    position: absolute;
+    top: 96px;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 96px);
+    border: none;
+    display: none;
+    z-index: 5;
+}
+
+.viewframe.active {
+    display: block;
+}
+
+/* ===== NTP ===== */
+.ntp {
+    position: absolute;
+    top: 96px;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 96px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    pointer-events: none;
+    z-index: 5;
+    gap: 30px;
+}
+
+/* ===== FROSTED CLOCK WIDGET ===== */
+.clock-widget {
+    pointer-events: auto;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    padding: 28px 32px;
+    border-radius: 24px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 30px rgba(125,216,248,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    max-width: 340px;
+    width: 100%;
+    color: #fff;
+    text-align: center;
+}
+
+.clock-widget #clock {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 2.4rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: #fff;
+}
+
+.clock-widget #date {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-top: 6px;
+    color: rgba(255,255,255,0.75);
+}
+
+.clock-bottom {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.clock-bottom .battery-row,
+.clock-bottom .weather-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- Light Blue Particles Background -->
+<div class="stars-container" id="starsContainer"></div>
+
+<div class="browser-ui">
+    <div class="tabs" id="tabs">
+        <button class="newtab" id="newtab"><i class="fas fa-plus"></i></button>
+    </div>
+
+    <div class="navbar">
+        <button id="back"><i class="fas fa-arrow-left"></i></button>
+        <button id="forward"><i class="fas fa-arrow-right"></i></button>
+        <button id="reload"><i class="fas fa-rotate-right"></i></button>
+
+        <form class="urlbar" id="form">
+            <input id="url" placeholder="Search or enter address">
+        </form>
+
+        <button id="popout"><i class="fas fa-external-link"></i></button>
+    </div>
+</div>
+
+<div class="ntp" id="ntp">
+    <h1 class="neon-text">classroomspot</h1>
+    
+    <!-- Frosted Clock Widget -->
+    <div class="clock-widget">
+        <div id="clock">00:00:00 AM</div>
+        <div id="date">Loading...</div>
+        <div class="clock-bottom">
+            <div class="battery-row">
+                <i id="battery-icon" class="fas fa-battery-three-quarters" style="color:#4ade80;"></i>
+                <span id="battery-level">--%</span>
+            </div>
+            <div class="weather-row">
+                <i class="fas fa-temperature-half" style="opacity:0.8;"></i>
+                <span id="temp-val">--°F</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Create light blue particles that wave to the right
+function createStars() {
+    const container = document.getElementById('starsContainer');
+    const starCount = 150;
+    
+    // Create static twinkling stars
+    for (let i = 0; i < starCount; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        star.style.left = Math.random() * 100 + '%';
+        star.style.top = Math.random() * 100 + '%';
+        star.style.animationDelay = Math.random() * 3 + 's';
+        star.style.animationDuration = (Math.random() * 3 + 2) + 's';
+        
+        const size = Math.random() * 2 + 1;
+        star.style.width = size + 'px';
+        star.style.height = size + 'px';
+        
+        container.appendChild(star);
+    }
+    
+    // Create rightward-waving particles
+    function createWavingParticle() {
+        const particle = document.createElement('div');
+        particle.className = 'falling-star';
+
+        // Spawn randomly on left side of screen
+        const startX = Math.random() * 30; // Start from left 30% of screen
+        const startY = Math.random() * 100;
+        particle.style.left = startX + '%';
+        particle.style.top = startY + '%';
+
+        const duration = (Math.random() * 2.5 + 1.5) + 's';
+        particle.style.animationDuration = duration;
+
+        // Wave offset: oscillate vertically using a random sine amplitude
+        const waveAmp = (Math.random() * 120 - 60); // -60px to +60px vertical drift
+        particle.style.setProperty('--wave-offset', waveAmp + 'px');
+
+        // Vary size slightly
+        const size = Math.random() * 2 + 2;
+        particle.style.width = size + 'px';
+        particle.style.height = size + 'px';
+
+        container.appendChild(particle);
+
+        setTimeout(() => {
+            particle.remove();
+        }, 5000);
+    }
+    
+    // Spawn waving particles periodically
+    setInterval(createWavingParticle, 400);
+}
+
+createStars();
+
+navigator.serviceWorker?.register("/uv/sw.js")
+
+const connection = new BareMux.BareMuxConnection("/baremux/worker.js")
+connection.setTransport("/libcurl/index.mjs", [{ websocket: "wss://wisp.rhw.one/" }])
+
+const tabsEl = document.getElementById("tabs")
+const newTabBtn = document.getElementById("newtab")
+const urlInput = document.getElementById("url")
+const centerUrlInput = document.getElementById("centerUrl")
+const ntp = document.getElementById("ntp")
+
+let tabs = []
+let activeId = null
+let idCounter = 0
+
+function createTab(url = "") {
+    const id = idCounter++
+
+    const iframe = document.createElement("iframe")
+    iframe.className = "viewframe"
+    iframe.dataset.id = id
+
+    iframe.setAttribute("sandbox",
+        "allow-scripts allow-same-origin allow-forms allow-modals allow-popups"
+    )
+
+    document.body.appendChild(iframe)
+
+    const tabBtn = document.createElement("div")
+    tabBtn.className = "tab"
+    tabBtn.dataset.id = id
+    tabBtn.innerHTML = `<span>New Tab</span><i class="fas fa-xmark"></i>`
+
+    tabBtn.addEventListener("click", e => {
+        if (e.target.tagName === "I") closeTab(id)
+        else activateTab(id)
+    })
+
+    tabsEl.insertBefore(tabBtn, newTabBtn)
+
+    tabs.push({ id, iframe, tabBtn, history: [], index: -1 })
+    activateTab(id)
+
+    if (url) navigate(url)
+}
+
+function activateTab(id) {
+    activeId = id
+
+    tabs.forEach(t => {
+        t.iframe.classList.toggle("active", t.id === id)
+        t.tabBtn.classList.toggle("active", t.id === id)
+    })
+
+    const tab = getTab()
+    if (!tab) return
+
+    if (tab.index >= 0) {
+        urlInput.value = tab.history[tab.index]
+        ntp.style.display = "none"
+    } else {
+        urlInput.value = ""
+        ntp.style.display = "flex"
+    }
+}
+
+function closeTab(id) {
+    if (tabs.length === 1) return
+
+    const i = tabs.findIndex(t => t.id === id)
+    const tab = tabs[i]
+
+    tab.iframe.remove()
+    tab.tabBtn.remove()
+    tabs.splice(i, 1)
+
+    activateTab(tabs[Math.max(0, i - 1)].id)
+}
+
+function normalize(input) {
+    if (!input.includes(".")) {
+        return "https://search.brave.com/search?q=" + encodeURIComponent(input)
+    }
+    if (!input.startsWith("http")) return "https://" + input
+    return input
+}
+
+function navigate(input, push = true) {
+    const tab = getTab()
+    if (!tab) return
+
+    const url = normalize(input)
+
+    if (push) {
+        tab.history = tab.history.slice(0, tab.index + 1)
+        tab.history.push(url)
+        tab.index++
+    }
+
+    tab.iframe.src = __uv$config.prefix + __uv$config.encodeUrl(url)
+    urlInput.value = url
+    centerUrlInput.value = url
+    ntp.style.display = "none"
+
+    tab.iframe.onload = () => {
+        tab.tabBtn.querySelector("span").textContent =
+            tab.iframe.contentDocument?.title || new URL(url).hostname
+    }
+}
+
+function getTab() {
+    return tabs.find(t => t.id === activeId)
+}
+
+/* ===== CONTROLS ===== */
+back.onclick = () => {
+    const t = getTab()
+    if (!t || t.index <= 0) return
+    t.index--
+    navigate(t.history[t.index], false)
+}
+
+forward.onclick = () => {
+    const t = getTab()
+    if (!t || t.index >= t.history.length - 1) return
+    t.index++
+    navigate(t.history[t.index], false)
+}
+
+reload.onclick = () => {
+    const t = getTab()
+    if (!t) return
+    t.iframe.src = t.iframe.src
+}
+
+popout.onclick = () => {
+    const t = getTab()
+    if (!t) return
+    window.open(t.iframe.src, "_blank")
+}
+
+form.onsubmit = e => {
+    e.preventDefault()
+    if (urlInput.value.trim()) navigate(urlInput.value)
+}
+
+document.getElementById("centerForm")?.addEventListener("submit", e => {
+    e.preventDefault()
+    if (centerUrlInput?.value?.trim()) navigate(centerUrlInput.value)
+})
+
+// ===== CLOCK / BATTERY / WEATHER =====
+function updateClock() {
+    const now = new Date();
+    document.getElementById("clock").textContent = now.toLocaleTimeString([], {
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+    });
+    document.getElementById("date").textContent = now.toLocaleDateString(undefined, {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    });
+}
+
+function updateBattery() {
+    if ('getBattery' in navigator) {
+        navigator.getBattery().then(battery => {
+            const level = Math.round(battery.level * 100);
+            const iconEl = document.getElementById("battery-icon");
+            let cls = 'fas ';
+            let color = '';
+            if (level <= 10) { cls += 'fa-battery-empty'; color = 'color:#ef4444;'; }
+            else if (level <= 30) { cls += 'fa-battery-quarter'; color = 'color:#eab308;'; }
+            else { cls += 'fa-battery-three-quarters'; color = 'color:#4ade80;'; }
+            iconEl.className = cls;
+            iconEl.style.cssText = color;
+            document.getElementById("battery-level").textContent = level + '%';
+        });
+    } else {
+        document.getElementById("battery-icon").className = 'fas fa-exclamation-triangle';
+        document.getElementById("battery-level").textContent = 'N/A';
+    }
+}
+
+function updateWeather() {
+    const tempEl = document.getElementById('temp-val');
+    const fetchTemp = (lat, lon) => {
+        fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=fahrenheit`)
+            .then(r => r.json())
+            .then(d => { tempEl.textContent = Math.round(d.current_weather.temperature) + '°F'; })
+            .catch(() => { tempEl.textContent = 'N/A'; });
+    };
+    if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+            p => fetchTemp(p.coords.latitude, p.coords.longitude),
+            () => fetchTemp(34.05, -118.24)
+        );
+    } else { fetchTemp(34.05, -118.24); }
+}
+
+updateClock();
+updateBattery();
+updateWeather();
+setInterval(updateClock, 1000);
+setInterval(updateBattery, 60000);
+setInterval(updateWeather, 600000);
+
+newTabBtn.onclick = () => createTab()
+
+createTab()
+</script>
+
+
+
+</body></html>
